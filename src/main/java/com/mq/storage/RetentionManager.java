@@ -2,13 +2,13 @@ package com.mq.storage;
 
 import com.mq.repository.TopicRepository;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -21,11 +21,11 @@ public class RetentionManager {
     private final TopicRepository topicRepository;
 
     // keeps msg for 7 days
-    @Value("${retention.hours:300000}")
+    @Value("${retention.hours:168}")
     private long retentionHours;
 
     // max byte 1GB
-    @Value("${retention.max.bytes:300000}")
+    @Value("${retention.max.bytes:1073741824}")
     private long retentionMaxBytes;
 
     // retention checks in every 5 mins
@@ -51,7 +51,7 @@ public class RetentionManager {
                 retentionHours, retentionMaxBytes / (1024 * 1024), checkIntervalMs);
     }
 
-    @PostConstruct
+    @PreDestroy
     public void stop() {
         scheduler.shutdownNow();
     }
@@ -82,7 +82,7 @@ public class RetentionManager {
     private void enforceRetention(String topicName, int partitionIdx) throws IOException {
         int timeDeleted = logManager.deleteSegmentsByTime(topicName, partitionIdx, retentionHours);
 
-        int sizeDeleted = logManager.deleteSegmentsBySize(topicName, partitionIdx, retentionHours);
+        int sizeDeleted = logManager.deleteSegmentsBySize(topicName, partitionIdx, retentionMaxBytes);
 
         if (timeDeleted > 0 || sizeDeleted > 0) {
             log.info("Retention: {}-{} deleted {} time-expired + {} size-exceeded segments",
