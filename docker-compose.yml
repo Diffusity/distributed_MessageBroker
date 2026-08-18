@@ -9,8 +9,9 @@ services:
       POSTGRES_DB: mqdb
       POSTGRES_USER: mq
       POSTGRES_PASSWORD: Password123!
-    ports:
-      - "5432:5432"
+    # Expose only internally to avoid port conflicts with local PostgreSQL
+    # ports:
+    #   - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
