@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # ── PostgreSQL ──
+  postgres:
+    image: postgres:16-alpine
+    container_name: mq-postgres
+    environment:
+      POSTGRES_DB: mqdb
+      POSTGRES_USER: mq
+      POSTGRES_PASSWORD: Password123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mq -d mqdb"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    networks:
+      - broker-net
+
+  # ── Broker 1 (port 8082) ──
+  broker-1:
+    build: .
+    container_name: mq-broker-1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - SERVER_PORT=8082
+      - BROKER_ID=broker-1
+      - BROKER_HOST=broker-1
+      - MQ_DATA_DIR=/data
+      - CLUSTER_PEERS=broker-1:8082,broker-2:8083,broker-3:8084
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mqdb
+      - SPRING_DATASOURCE_USERNAME=mq
+      - SPRING_DATASOURCE_PASSWORD=Password123!
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    ports:
+      - "8082:8082"
+    volumes:
+      - broker1_data:/data
+    networks:
+      - broker-net
+
+  # ── Broker 2 (port 8083) ──
+  broker-2:
+    build: .
+    container_name: mq-broker-2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - SERVER_PORT=8083
+      - BROKER_ID=broker-2
+      - BROKER_HOST=broker-2
+      - MQ_DATA_DIR=/data
+      - CLUSTER_PEERS=broker-1:8082,broker-2:8083,broker-3:8084
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mqdb
+      - SPRING_DATASOURCE_USERNAME=mq
+      - SPRING_DATASOURCE_PASSWORD=Password123!
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    ports:
+      - "8083:8083"
+    volumes:
+      - broker2_data:/data
+    networks:
+      - broker-net
+
+  # ── Broker 3 (port 8084) ──
+  broker-3:
+    build: .
+    container_name: mq-broker-3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - SERVER_PORT=8084
+      - BROKER_ID=broker-3
+      - BROKER_HOST=broker-3
+      - MQ_DATA_DIR=/data
+      - CLUSTER_PEERS=broker-1:8082,broker-2:8083,broker-3:8084
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mqdb
+      - SPRING_DATASOURCE_USERNAME=mq
+      - SPRING_DATASOURCE_PASSWORD=Password123!
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    ports:
+      - "8084:8084"
+    volumes:
+      - broker3_data:/data
+    networks:
+      - broker-net
+
+volumes:
+  pg_data:
+  broker1_data:
+  broker2_data:
+  broker3_data:
+
+networks:
+  broker-net:
+    driver: bridge

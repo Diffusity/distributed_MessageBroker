@@ -1,6 +1,6 @@
-# Distributed Message Queue
+# Distributed Message Broker
 
-A Kafka-inspired distributed message queue built from scratch in Java 17 and Spring Boot 3. Implements core distributed systems concepts including Raft consensus, consistent hashing, leader-follower replication, ISR tracking, and consumer group coordination — all without using Kafka, ZooKeeper, or any message queue library.
+A Kafka-inspired distributed message broker built from scratch in Java 17 and Spring Boot 3. Implements core distributed systems concepts including Raft consensus, consistent hashing, leader-follower replication, ISR tracking, and consumer group coordination — all without using Kafka, ZooKeeper, or any message broker library.
 
 > Built as a flagship backend engineering project to demonstrate deep understanding of distributed systems internals.
 
@@ -97,7 +97,7 @@ A Kafka-inspired distributed message queue built from scratch in Java 17 and Spr
 | Build | Maven |
 | Utilities | Lombok |
 
-No Kafka. No ZooKeeper. No message queue library.
+No Kafka. No ZooKeeper. No message broker library.
 
 ---
 
@@ -158,7 +158,24 @@ src/main/java/com/mq/
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
+
+### Quick Start with Docker (Recommended)
+
+The fastest way to run the full 3-broker cluster with PostgreSQL:
+
+```bash
+# Start everything (PostgreSQL + 3 brokers)
+docker-compose up -d --build
+
+# Run the demo (creates topic, produces, consumes)
+bash demo.sh
+
+# Stop everything
+docker-compose down -v
+```
+
+No Java, Maven, or PostgreSQL installation required — just Docker.
 
 ### Prerequisites
 
